@@ -13,15 +13,26 @@ def load_model(model_name: str = DEFAULT_MODEL) -> SentenceTransformer:
 
 
 def encode_texts(texts, model: SentenceTransformer, batch_size: int = 64) -> dict:
-    #кодує унікальні тексти за для того щоб це було швидше 
+    #кодує унікальні тексти за для того щоб це було швидше
     unique = sorted(set(texts))
     vectors = model.encode(
         unique,
         batch_size=batch_size,
-        normalize_embeddings=True,  #довжина вектора 1 тоді cosine=скалярний добуток
+        normalize_embeddings=True,  # довжина вектора 1 тоді cosine=скалярний добуток
         show_progress_bar=True,
     )
     return dict(zip(unique, vectors))
+
+
+def make_features(E_job: np.ndarray, E_skill: np.ndarray, mode: str = "concat") -> np.ndarray:
+    if mode == "concat":
+        return np.hstack([E_job, E_skill])
+
+    if mode == "extended":
+        cosine = np.sum(E_job * E_skill, axis=1, keepdims=True)
+        return np.hstack([E_job, E_skill, np.abs(E_job - E_skill), E_job * E_skill, cosine])
+
+    raise ValueError(f"invalid mode: {mode}")
 
 
 def build_features(df: pd.DataFrame, model: SentenceTransformer, mode: str = "concat") -> np.ndarray:
@@ -33,12 +44,4 @@ def build_features(df: pd.DataFrame, model: SentenceTransformer, mode: str = "co
 
     E_job = np.vstack([job_map[j] for j in jobs])
     E_skill = np.vstack([skill_map[s] for s in skills])
-
-    if mode == "concat":
-        return np.hstack([E_job, E_skill])
-
-    if mode == "extended":
-        cosine = np.sum(E_job * E_skill, axis=1, keepdims=True)
-        return np.hstack([E_job, E_skill, np.abs(E_job - E_skill), E_job * E_skill, cosine])
-
-    raise ValueError(f"Невідомий mode: {mode}. Використай 'concat' або 'extended'.")
+    return make_features(E_job, E_skill, mode)
