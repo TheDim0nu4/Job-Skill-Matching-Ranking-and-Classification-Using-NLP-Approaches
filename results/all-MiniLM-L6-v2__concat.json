@@ -1,0 +1,7 @@
+{
+  "model": "all-MiniLM-L6-v2",
+  "mode": "concat",
+  "class_weight": null,
+  "accuracy": 0.4118940446804539,
+  "macro_f1": 0.40338349731992823
+}
