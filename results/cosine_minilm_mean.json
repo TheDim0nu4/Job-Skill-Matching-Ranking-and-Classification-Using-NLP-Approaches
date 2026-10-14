@@ -1,0 +1,10 @@
+{
+  "description": "Zero-shot cosine (all-MiniLM-L6-v2); навичка = усереднений embedding усіх аліасів.",
+  "ndcg_graded": 0.6214,
+  "ndcg_binary": 0.6645,
+  "map_binary": 0.1477,
+  "mrr_binary": 0.6397,
+  "p@1": 0.4803,
+  "p@5": 0.3836,
+  "p@10": 0.3658
+}

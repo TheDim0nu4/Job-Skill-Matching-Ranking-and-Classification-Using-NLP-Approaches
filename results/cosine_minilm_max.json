@@ -1,0 +1,10 @@
+{
+  "description": "Zero-shot cosine (all-MiniLM-L6-v2); скор навички = максимум cosine по всіх її аліасах.",
+  "ndcg_graded": 0.6105,
+  "ndcg_binary": 0.6536,
+  "map_binary": 0.136,
+  "mrr_binary": 0.5901,
+  "p@1": 0.3882,
+  "p@5": 0.373,
+  "p@10": 0.3464
+}

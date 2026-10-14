@@ -1,0 +1,10 @@
+{
+  "description": "Zero-shot cosine (TechWolf/JobBERT-v2); навичка = усереднений embedding усіх аліасів.",
+  "ndcg_graded": 0.7381,
+  "ndcg_binary": 0.7889,
+  "map_binary": 0.3416,
+  "mrr_binary": 0.7886,
+  "p@1": 0.648,
+  "p@5": 0.5632,
+  "p@10": 0.5178
+}
