@@ -1,0 +1,10 @@
+{
+  "description": "Zero-shot cosine (TechWolf/JobBERT-v2); навичка представлена першим аліасом.",
+  "ndcg_graded": 0.7359,
+  "ndcg_binary": 0.7899,
+  "map_binary": 0.3479,
+  "mrr_binary": 0.821,
+  "p@1": 0.6974,
+  "p@5": 0.5645,
+  "p@10": 0.4914
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Zero-shot cosine (all-mpnet-base-v2); навичка = усереднений embedding усіх аліасів.",
+  "ndcg_graded": 0.6327,
+  "ndcg_binary": 0.6763,
+  "map_binary": 0.1612,
+  "mrr_binary": 0.6302,
+  "p@1": 0.4539,
+  "p@5": 0.398,
+  "p@10": 0.3711
+}

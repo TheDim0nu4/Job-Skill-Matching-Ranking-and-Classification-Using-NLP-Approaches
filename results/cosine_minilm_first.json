@@ -1,0 +1,10 @@
+{
+  "description": "Zero-shot cosine (all-MiniLM-L6-v2); навичка представлена першим аліасом.",
+  "ndcg_graded": 0.6154,
+  "ndcg_binary": 0.6599,
+  "map_binary": 0.143,
+  "mrr_binary": 0.6206,
+  "p@1": 0.4342,
+  "p@5": 0.3829,
+  "p@10": 0.3539
+}
