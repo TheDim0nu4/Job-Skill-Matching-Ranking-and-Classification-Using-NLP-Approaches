@@ -1,0 +1,10 @@
+{
+  "description": "LogisticRegression на [E_job ; E_skill ; |E_job-E_skill| ; E_job*E_skill ; cosine] (all-MiniLM-L6-v2). Скор = P(1) + 2*P(2).",
+  "ndcg_graded": 0.5902,
+  "ndcg_binary": 0.6262,
+  "map_binary": 0.1137,
+  "mrr_binary": 0.3011,
+  "p@1": 0.1151,
+  "p@5": 0.1526,
+  "p@10": 0.1842
+}

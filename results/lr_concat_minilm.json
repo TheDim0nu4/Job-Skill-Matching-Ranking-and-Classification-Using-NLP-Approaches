@@ -1,0 +1,10 @@
+{
+  "description": "LogisticRegression на конкатенації [E_job ; E_skill] (all-MiniLM-L6-v2, без донавчання). Скор = P(1) + 2*P(2).",
+  "ndcg_graded": 0.4856,
+  "ndcg_binary": 0.5213,
+  "map_binary": 0.0371,
+  "mrr_binary": 0.0947,
+  "p@1": 0.0099,
+  "p@5": 0.0303,
+  "p@10": 0.0461
+}
