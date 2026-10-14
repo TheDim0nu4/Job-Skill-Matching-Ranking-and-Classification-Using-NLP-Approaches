@@ -1,0 +1,10 @@
+{
+  "description": "Fine-tuned all-MiniLM-L6-v2 (MultipleNegativesRankingLoss, NO_DUPLICATES, 2 епох, batch 128, lr 2e-05) на позитивних парах train.csv (essential+optional); валідація: 5% посад за назвою. Cosine similarity, навичка = перший аліас.",
+  "ndcg_graded": 0.6744,
+  "ndcg_binary": 0.7217,
+  "map_binary": 0.2273,
+  "mrr_binary": 0.6643,
+  "p@1": 0.5,
+  "p@5": 0.4704,
+  "p@10": 0.4441
+}
