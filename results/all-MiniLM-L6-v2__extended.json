@@ -1,7 +1,0 @@
-{
-  "model": "all-MiniLM-L6-v2",
-  "mode": "extended",
-  "class_weight": null,
-  "accuracy": 0.5616897259847746,
-  "macro_f1": 0.5353628135625023
-}
