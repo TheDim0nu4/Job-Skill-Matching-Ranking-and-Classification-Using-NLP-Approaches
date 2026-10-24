@@ -1,17 +1,10 @@
 {
-  "description": "Zero-shot cosine (all-mpnet-base-v2); mean skill aliases",
-  "model_short_name": "mpnet",
-  "model_name": "all-mpnet-base-v2",
-  "skill_representation": "mean",
-  "query_prefix": "",
-  "skill_prefix": "",
-  "n_queries": 304,
-  "n_candidate_skills": 9052,
-  "ndcg_graded": 0.632662,
-  "ndcg_binary": 0.676252,
-  "map_binary": 0.161164,
-  "mrr_binary": 0.630215,
-  "p@1": 0.453947,
-  "p@5": 0.398026,
-  "p@10": 0.371053
+  "description": "Zero-shot cosine (all-mpnet-base-v2); each skill is represented by the mean of its alias embeddings.",
+  "ndcg_graded": 0.6327,
+  "ndcg_binary": 0.6763,
+  "map_binary": 0.1612,
+  "mrr_binary": 0.6302,
+  "p@1": 0.4539,
+  "p@5": 0.398,
+  "p@10": 0.3711
 }
