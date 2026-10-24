@@ -1,0 +1,4 @@
+skill_representation,mean_ndcg_graded,mean_map_binary,mean_mrr_binary
+mean,0.6525974,0.194036,0.6766968
+first,0.650188,0.1959836,0.6830306
+max,0.6425922,0.1807976,0.6475664

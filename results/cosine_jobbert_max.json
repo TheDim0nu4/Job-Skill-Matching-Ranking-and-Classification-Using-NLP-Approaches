@@ -1,10 +1,17 @@
 {
-  "description": "Zero-shot cosine (TechWolf/JobBERT-v2); скор навички = максимум cosine по всіх її аліасах.",
-  "ndcg_graded": 0.7223,
-  "ndcg_binary": 0.7723,
-  "map_binary": 0.3077,
-  "mrr_binary": 0.7535,
-  "p@1": 0.5987,
-  "p@5": 0.5125,
-  "p@10": 0.4816
+  "description": "Zero-shot cosine (TechWolf/JobBERT-v2); max skill aliases",
+  "model_short_name": "jobbert",
+  "model_name": "TechWolf/JobBERT-v2",
+  "skill_representation": "max",
+  "query_prefix": "",
+  "skill_prefix": "",
+  "n_queries": 304,
+  "n_candidate_skills": 9052,
+  "ndcg_graded": 0.722241,
+  "ndcg_binary": 0.772278,
+  "map_binary": 0.307647,
+  "mrr_binary": 0.751939,
+  "p@1": 0.595395,
+  "p@5": 0.513158,
+  "p@10": 0.481579
 }

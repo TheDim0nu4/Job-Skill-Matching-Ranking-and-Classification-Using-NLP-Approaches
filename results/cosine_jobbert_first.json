@@ -1,10 +1,17 @@
 {
-  "description": "Zero-shot cosine (TechWolf/JobBERT-v2); навичка представлена першим аліасом.",
-  "ndcg_graded": 0.7359,
-  "ndcg_binary": 0.7899,
-  "map_binary": 0.3479,
-  "mrr_binary": 0.821,
-  "p@1": 0.6974,
-  "p@5": 0.5645,
-  "p@10": 0.4914
+  "description": "Zero-shot cosine (TechWolf/JobBERT-v2); first skill aliases",
+  "model_short_name": "jobbert",
+  "model_name": "TechWolf/JobBERT-v2",
+  "skill_representation": "first",
+  "query_prefix": "",
+  "skill_prefix": "",
+  "n_queries": 304,
+  "n_candidate_skills": 9052,
+  "ndcg_graded": 0.735927,
+  "ndcg_binary": 0.789857,
+  "map_binary": 0.347853,
+  "mrr_binary": 0.821024,
+  "p@1": 0.697368,
+  "p@5": 0.564474,
+  "p@10": 0.491447
 }

@@ -1,0 +1,16 @@
+description,model_short_name,model_name,skill_representation,query_prefix,skill_prefix,n_queries,n_candidate_skills,ndcg_graded,ndcg_binary,map_binary,mrr_binary,p@1,p@5,p@10
+Zero-shot cosine (TechWolf/JobBERT-v2); mean skill aliases,jobbert,TechWolf/JobBERT-v2,mean,,,304,9052,0.738077,0.788888,0.341614,0.788649,0.648026,0.5625,0.517763
+Zero-shot cosine (TechWolf/JobBERT-v2); first skill aliases,jobbert,TechWolf/JobBERT-v2,first,,,304,9052,0.735927,0.789857,0.347853,0.821024,0.697368,0.564474,0.491447
+Zero-shot cosine (TechWolf/JobBERT-v2); max skill aliases,jobbert,TechWolf/JobBERT-v2,max,,,304,9052,0.722241,0.772278,0.307647,0.751939,0.595395,0.513158,0.481579
+Zero-shot cosine (intfloat/e5-base-v2); first skill aliases,e5,intfloat/e5-base-v2,first,query: ,passage: ,304,9052,0.649977,0.69488,0.183272,0.709678,0.549342,0.467105,0.438816
+Zero-shot cosine (intfloat/e5-base-v2); max skill aliases,e5,intfloat/e5-base-v2,max,query: ,passage: ,304,9052,0.644426,0.688065,0.1747,0.671313,0.506579,0.432895,0.399671
+Zero-shot cosine (intfloat/e5-base-v2); mean skill aliases,e5,intfloat/e5-base-v2,mean,query: ,passage: ,304,9052,0.64011,0.68214,0.164249,0.695816,0.542763,0.450658,0.416776
+Zero-shot cosine (all-mpnet-base-v2); mean skill aliases,mpnet,all-mpnet-base-v2,mean,,,304,9052,0.632662,0.676252,0.161164,0.630215,0.453947,0.398026,0.371053
+Zero-shot cosine (BAAI/bge-base-en-v1.5); mean skill aliases,bge,BAAI/bge-base-en-v1.5,mean,Represent this sentence for searching relevant skills: ,,304,9052,0.630855,0.672003,0.155516,0.634001,0.444079,0.413816,0.373684
+Zero-shot cosine (all-mpnet-base-v2); first skill aliases,mpnet,all-mpnet-base-v2,first,,,304,9052,0.62508,0.670368,0.154499,0.613456,0.440789,0.380921,0.354934
+Zero-shot cosine (BAAI/bge-base-en-v1.5); first skill aliases,bge,BAAI/bge-base-en-v1.5,first,Represent this sentence for searching relevant skills: ,,304,9052,0.624571,0.668177,0.151286,0.650626,0.486842,0.392763,0.365132
+Zero-shot cosine (all-MiniLM-L6-v2); mean skill aliases,minilm,all-MiniLM-L6-v2,mean,,,304,9052,0.621283,0.664406,0.147637,0.634803,0.470395,0.383553,0.365461
+Zero-shot cosine (all-mpnet-base-v2); max skill aliases,mpnet,all-mpnet-base-v2,max,,,304,9052,0.618863,0.662505,0.144589,0.606143,0.417763,0.378947,0.352303
+Zero-shot cosine (BAAI/bge-base-en-v1.5); max skill aliases,bge,BAAI/bge-base-en-v1.5,max,Represent this sentence for searching relevant skills: ,,304,9052,0.616912,0.65909,0.141025,0.61822,0.430921,0.368421,0.346053
+Zero-shot cosine (all-MiniLM-L6-v2); first skill aliases,minilm,all-MiniLM-L6-v2,first,,,304,9052,0.615385,0.659858,0.143008,0.620369,0.434211,0.382895,0.353947
+Zero-shot cosine (all-MiniLM-L6-v2); max skill aliases,minilm,all-MiniLM-L6-v2,max,,,304,9052,0.610519,0.653563,0.136027,0.590217,0.388158,0.373684,0.347039

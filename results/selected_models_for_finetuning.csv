@@ -1,0 +1,4 @@
+rank,model_short_name,model_name,alias_strategy
+1,jobbert,TechWolf/JobBERT-v2,mean
+2,e5,intfloat/e5-base-v2,mean
+3,mpnet,all-mpnet-base-v2,mean

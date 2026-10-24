@@ -1,54 +1,89 @@
 # Results summary
 
-This file summarizes the results currently stored in `results/*.json`.
-All ranking results are calculated on the Task B development queries by
-ranking the complete candidate skill corpus for each job title.
+All ranking results use the Task B development queries and rank the complete
+candidate skill corpus for each job title.
 
-## Main comparison
+## Notebooks 04-07 experiment pipeline
 
-| Approach | Model | Skill representation | nDCG graded | nDCG binary | MAP | MRR | P@1 | P@5 | P@10 |
-|---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| Zero-shot cosine | JobBERT | Mean of aliases | **0.7381** | 0.7889 | 0.3416 | 0.7886 | 0.6480 | 0.5632 | 0.5178 |
-| Zero-shot cosine | JobBERT | First alias | 0.7359 | **0.7899** | **0.3479** | **0.8210** | **0.6974** | **0.5645** | 0.4914 |
-| Zero-shot cosine | JobBERT | Maximum alias score | 0.7223 | 0.7723 | 0.3077 | 0.7535 | 0.5987 | 0.5125 | 0.4816 |
-| Fine-tuned cosine | MiniLM | First alias | 0.6744 | 0.7217 | 0.2273 | 0.6643 | 0.5000 | 0.4704 | 0.4441 |
-| Zero-shot cosine | MPNet | Mean of aliases | 0.6327 | 0.6763 | 0.1612 | 0.6302 | 0.4539 | 0.3980 | 0.3711 |
-| Zero-shot cosine | MPNet | First alias | 0.6251 | 0.6704 | 0.1545 | 0.6135 | 0.4408 | 0.3809 | 0.3549 |
-| Zero-shot cosine | MiniLM | Mean of aliases | 0.6214 | 0.6645 | 0.1477 | 0.6397 | 0.4803 | 0.3836 | 0.3658 |
-| Zero-shot cosine | MiniLM | First alias | 0.6154 | 0.6599 | 0.1430 | 0.6206 | 0.4342 | 0.3829 | 0.3539 |
-| Zero-shot cosine | MPNet | Maximum alias score | 0.6189 | 0.6625 | 0.1446 | 0.6059 | 0.4178 | 0.3783 | 0.3523 |
-| Zero-shot cosine | MiniLM | Maximum alias score | 0.6105 | 0.6536 | 0.1360 | 0.5901 | 0.3882 | 0.3730 | 0.3464 |
-| Logistic regression | MiniLM | Concatenated embeddings | 0.4856 | 0.5213 | 0.0371 | 0.0947 | 0.0099 | 0.0303 | 0.0461 |
-| Logistic regression | MiniLM | Extended pair features | 0.5902 | 0.6262 | 0.1137 | 0.3011 | 0.1151 | 0.1526 | 0.1842 |
+[`experiments/04_five_model_comparison.ipynb`](experiments/04_five_model_comparison.ipynb)
+evaluates five models (MiniLM, MPNet, JobBERT, BGE, and E5) with first, mean,
+and maximum skill-alias strategies. The predefined primary criterion selects
+**mean aliases**: mean graded nDCG is `0.6526`, compared with `0.6502` for
+first aliases and `0.6426` for maximum alias scoring.
 
-## Short interpretation
+[`experiments/05_locked_model_comparison.ipynb`](experiments/05_locked_model_comparison.ipynb)
+locks the mean-alias representation. The zero-shot ranking is:
 
-- JobBERT is the strongest overall model in the stored experiments.
-- JobBERT with mean alias embeddings has the best graded nDCG (`0.7381`).
-- JobBERT with the first alias has the best MAP, MRR, and P@1.
-- Mean alias aggregation improves MiniLM and MPNet over their first-alias
-  variants, but maximum alias scoring is consistently weaker.
-- Fine-tuning MiniLM improves graded nDCG from `0.6154` to `0.6744`.
-- Direct cosine ranking is stronger than both logistic-regression variants.
-- The results measure retrieval and graded ranking. Fine-tuning does not
-  explicitly train a separate core/contextual classifier.
+| Rank | Model | Graded nDCG | MAP | MRR |
+|---:|---|---:|---:|---:|
+| 1 | JobBERT | 0.7381 | 0.3416 | 0.7886 |
+| 2 | E5 | 0.6401 | 0.1642 | 0.6760 |
+| 3 | MPNet | 0.6327 | 0.1612 | 0.6302 |
+| 4 | BGE | 0.6309 | 0.1555 | 0.6250 |
+| 5 | MiniLM | 0.6213 | 0.1476 | 0.6397 |
+
+The top three candidates, JobBERT, E5, and MPNet, were selected for
+fine-tuning in
+[`experiments/06_finetune_selected_models.ipynb`](experiments/06_finetune_selected_models.ipynb).
+
+## Fine-tuning results
+
+Fine-tuning uses `MultipleNegativesRankingLoss`, positive pairs (`label > 0`),
+two epochs, batch size 128, learning rate `2e-5`, and a fixed seed.
+
+| Model | Graded nDCG | MAP | MRR | P@1 | P@5 | P@10 |
+|---|---:|---:|---:|---:|---:|---:|
+| JobBERT | 0.7319 | 0.3258 | 0.7997 | 0.6678 | 0.5882 | 0.5507 |
+| E5 | 0.7040 | 0.2694 | 0.7243 | 0.5658 | 0.5138 | 0.5039 |
+| MPNet | 0.6981 | 0.2602 | 0.7071 | 0.5625 | 0.5033 | 0.4766 |
+
+## Final eight-system comparison
+
+[`experiments/07_final_comparison_and_error_analysis.ipynb`](experiments/07_final_comparison_and_error_analysis.ipynb)
+recomputed the final comparison from the complete development corpus for all
+304 jobs.
+
+| Stage | Model | nDCG graded | nDCG binary | MAP | MRR | P@1 | P@5 | P@10 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Zero-shot | JobBERT | **0.7381** | 0.7889 | **0.3416** | 0.7903 | 0.6513 | 0.5632 | 0.5178 |
+| Fine-tuned | JobBERT | 0.7319 | 0.7813 | 0.3258 | **0.7997** | **0.6678** | **0.5882** | **0.5507** |
+| Fine-tuned | E5 | 0.7040 | 0.7493 | 0.2694 | 0.7243 | 0.5658 | 0.5138 | 0.5039 |
+| Fine-tuned | MPNet | 0.6981 | 0.7438 | 0.2602 | 0.7071 | 0.5625 | 0.5033 | 0.4766 |
+| Zero-shot | E5 | 0.6401 | 0.6821 | 0.1642 | 0.6966 | 0.5428 | 0.4507 | 0.4168 |
+| Zero-shot | MPNet | 0.6327 | 0.6763 | 0.1612 | 0.6300 | 0.4539 | 0.3993 | 0.3711 |
+| Zero-shot | BGE | 0.6309 | 0.6720 | 0.1555 | 0.6339 | 0.4441 | 0.4132 | 0.3737 |
+| Zero-shot | MiniLM | 0.6214 | 0.6645 | 0.1476 | 0.6386 | 0.4770 | 0.3836 | 0.3658 |
+
+JobBERT zero-shot is the strongest final system by graded nDCG, MAP,
+relevance AUC, and core AUC. Fine-tuned JobBERT has the strongest top-k
+precision and MRR, although its nDCG and MAP are slightly lower. Fine-tuning
+improves E5 graded nDCG from `0.6401` to `0.7040` and MPNet from `0.6327` to
+`0.6981`.
 
 ## Error-analysis results
 
-The error-analysis notebook compares JobBERT with fine-tuned MiniLM for 304
-development jobs:
+Notebook 07 produced 2,432 per-job rows: eight systems evaluated on each of
+the 304 development jobs. It also produced the ten lowest-nDCG jobs for each
+system.
 
-- JobBERT has higher per-job nDCG for 263 jobs.
-- Fine-tuned MiniLM has higher per-job nDCG for 41 jobs.
-- JobBERT mean per-job graded nDCG is approximately `0.736`.
-- Fine-tuned MiniLM mean per-job graded nDCG is approximately `0.674`.
-- JobBERT relevant-versus-irrelevant pair AUC is approximately `0.959`.
-- Fine-tuned MiniLM relevant-versus-irrelevant pair AUC is approximately
-  `0.904`.
-- Core-versus-contextual pair AUC is weak for both models: approximately
-  `0.544` for JobBERT and `0.602` for fine-tuned MiniLM.
+| System | Relevance AUC | Core AUC |
+|---|---:|---:|
+| JobBERT zero-shot | **0.9596** | **0.9585** |
+| JobBERT fine-tuned | 0.9420 | 0.9483 |
+| E5 fine-tuned | 0.9219 | 0.9445 |
+| MPNet fine-tuned | 0.9222 | 0.9436 |
+| E5 zero-shot | 0.8517 | 0.8772 |
+| MPNet zero-shot | 0.8543 | 0.8732 |
+| BGE zero-shot | 0.8390 | 0.8744 |
+| MiniLM zero-shot | 0.8303 | 0.8540 |
 
-The repository also contains a 100-row false-positive sample in
-`results/error_analysis/false_positives_to_annotate.csv`. Its annotation
-columns are currently empty, so it represents preliminary rather than
-completed manual error analysis.
+Generated files:
+
+- [`results/final_system_comparison.csv`](results/final_system_comparison.csv)
+- [`results/error_analysis_summary.csv`](results/error_analysis_summary.csv)
+- [`results/error_analysis_per_job.csv`](results/error_analysis_per_job.csv)
+- [`results/error_analysis_hardest_jobs.csv`](results/error_analysis_hardest_jobs.csv)
+
+The hardest-job files support targeted qualitative inspection, but no manual
+annotations have yet been added. Fine-tuning adapts retrieval rather than
+explicitly training a separate core/contextual classifier.

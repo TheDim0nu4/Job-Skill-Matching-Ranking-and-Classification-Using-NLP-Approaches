@@ -1,10 +1,17 @@
 {
-  "description": "Zero-shot cosine (all-mpnet-base-v2); навичка представлена першим аліасом.",
-  "ndcg_graded": 0.6251,
-  "ndcg_binary": 0.6704,
-  "map_binary": 0.1545,
-  "mrr_binary": 0.6135,
-  "p@1": 0.4408,
-  "p@5": 0.3809,
-  "p@10": 0.3549
+  "description": "Zero-shot cosine (all-mpnet-base-v2); first skill aliases",
+  "model_short_name": "mpnet",
+  "model_name": "all-mpnet-base-v2",
+  "skill_representation": "first",
+  "query_prefix": "",
+  "skill_prefix": "",
+  "n_queries": 304,
+  "n_candidate_skills": 9052,
+  "ndcg_graded": 0.62508,
+  "ndcg_binary": 0.670368,
+  "map_binary": 0.154499,
+  "mrr_binary": 0.613456,
+  "p@1": 0.440789,
+  "p@5": 0.380921,
+  "p@10": 0.354934
 }

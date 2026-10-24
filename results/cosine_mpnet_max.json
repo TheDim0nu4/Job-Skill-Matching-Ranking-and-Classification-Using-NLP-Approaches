@@ -1,10 +1,17 @@
 {
-  "description": "Zero-shot cosine (all-mpnet-base-v2); скор навички = максимум cosine по всіх її аліасах.",
-  "ndcg_graded": 0.6189,
-  "ndcg_binary": 0.6625,
-  "map_binary": 0.1446,
-  "mrr_binary": 0.6059,
-  "p@1": 0.4178,
-  "p@5": 0.3783,
-  "p@10": 0.3523
+  "description": "Zero-shot cosine (all-mpnet-base-v2); max skill aliases",
+  "model_short_name": "mpnet",
+  "model_name": "all-mpnet-base-v2",
+  "skill_representation": "max",
+  "query_prefix": "",
+  "skill_prefix": "",
+  "n_queries": 304,
+  "n_candidate_skills": 9052,
+  "ndcg_graded": 0.618863,
+  "ndcg_binary": 0.662505,
+  "map_binary": 0.144589,
+  "mrr_binary": 0.606143,
+  "p@1": 0.417763,
+  "p@5": 0.378947,
+  "p@10": 0.352303
 }

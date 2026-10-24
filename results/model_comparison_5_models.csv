@@ -1,0 +1,6 @@
+model,model_name,skill_representation,ndcg_graded,ndcg_binary,map_binary,mrr_binary,p@1,p@5,p@10
+jobbert,TechWolf/JobBERT-v2,first alias,0.7359,0.7899,0.3479,0.821,0.6974,0.5645,0.4914
+e5,intfloat/e5-base-v2,first alias,0.65,0.6949,0.1833,0.7097,0.5493,0.4671,0.4388
+mpnet,all-mpnet-base-v2,first alias,0.6251,0.6704,0.1545,0.6135,0.4408,0.3809,0.3549
+bge,BAAI/bge-base-en-v1.5,first alias,0.6246,0.6682,0.1513,0.6506,0.4868,0.3928,0.3651
+minilm,all-MiniLM-L6-v2,first alias,0.6154,0.6599,0.143,0.6206,0.4342,0.3829,0.3539

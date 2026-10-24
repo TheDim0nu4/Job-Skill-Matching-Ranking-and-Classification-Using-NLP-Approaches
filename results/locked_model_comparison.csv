@@ -1,0 +1,6 @@
+rank,description,model_short_name,model_name,skill_representation,query_prefix,skill_prefix,n_queries,n_candidate_skills,ndcg_graded,ndcg_binary,map_binary,mrr_binary,p@1,p@5,p@10
+1,Zero-shot cosine (TechWolf/JobBERT-v2); mean skill aliases,jobbert,TechWolf/JobBERT-v2,mean,,,304,9052,0.738077,0.788888,0.341614,0.788649,0.648026,0.5625,0.517763
+2,Zero-shot cosine (intfloat/e5-base-v2); mean skill aliases,e5,intfloat/e5-base-v2,mean,query: ,passage: ,304,9052,0.64011,0.68214,0.164249,0.695816,0.542763,0.450658,0.416776
+3,Zero-shot cosine (all-mpnet-base-v2); mean skill aliases,mpnet,all-mpnet-base-v2,mean,,,304,9052,0.632662,0.676252,0.161164,0.630215,0.453947,0.398026,0.371053
+4,Zero-shot cosine (BAAI/bge-base-en-v1.5); mean skill aliases,bge,BAAI/bge-base-en-v1.5,mean,Represent this sentence for searching relevant skills: ,,304,9052,0.630855,0.672003,0.155516,0.634001,0.444079,0.413816,0.373684
+5,Zero-shot cosine (all-MiniLM-L6-v2); mean skill aliases,minilm,all-MiniLM-L6-v2,mean,,,304,9052,0.621283,0.664406,0.147637,0.634803,0.470395,0.383553,0.365461

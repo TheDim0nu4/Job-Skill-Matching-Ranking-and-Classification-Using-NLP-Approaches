@@ -1,0 +1,9 @@
+model_short_name,model_name,ndcg_graded,ndcg_binary,map_binary,mrr_binary,p@1,p@5,p@10,stage,protocol_note
+jobbert,TechWolf/JobBERT-v2,0.731888,0.781265,0.325751,0.799661,0.667763,0.588158,0.550658,fine_tuned,locked mean aliases; fine-tuning notebook used raw text for all models
+e5,intfloat/e5-base-v2,0.703989,0.749263,0.269418,0.724304,0.565789,0.513816,0.503947,fine_tuned,locked mean aliases; fine-tuning notebook used raw text for all models
+mpnet,all-mpnet-base-v2,0.698082,0.743776,0.260244,0.707061,0.5625,0.503289,0.476645,fine_tuned,locked mean aliases; fine-tuning notebook used raw text for all models
+jobbert,TechWolf/JobBERT-v2,0.738077,0.788888,0.341614,0.788649,0.648026,0.5625,0.517763,zero_shot,locked mean aliases; model-specific zero-shot prefixes
+e5,intfloat/e5-base-v2,0.64011,0.68214,0.164249,0.695816,0.542763,0.450658,0.416776,zero_shot,locked mean aliases; model-specific zero-shot prefixes
+mpnet,all-mpnet-base-v2,0.632662,0.676252,0.161164,0.630215,0.453947,0.398026,0.371053,zero_shot,locked mean aliases; model-specific zero-shot prefixes
+bge,BAAI/bge-base-en-v1.5,0.630855,0.672003,0.155516,0.634001,0.444079,0.413816,0.373684,zero_shot,locked mean aliases; model-specific zero-shot prefixes
+minilm,all-MiniLM-L6-v2,0.621283,0.664406,0.147637,0.634803,0.470395,0.383553,0.365461,zero_shot,locked mean aliases; model-specific zero-shot prefixes

@@ -1,0 +1,17 @@
+{
+  "description": "Zero-shot cosine (intfloat/e5-base-v2); max skill aliases",
+  "model_short_name": "e5",
+  "model_name": "intfloat/e5-base-v2",
+  "skill_representation": "max",
+  "query_prefix": "query: ",
+  "skill_prefix": "passage: ",
+  "n_queries": 304,
+  "n_candidate_skills": 9052,
+  "ndcg_graded": 0.644426,
+  "ndcg_binary": 0.688065,
+  "map_binary": 0.1747,
+  "mrr_binary": 0.671313,
+  "p@1": 0.506579,
+  "p@5": 0.432895,
+  "p@10": 0.399671
+}

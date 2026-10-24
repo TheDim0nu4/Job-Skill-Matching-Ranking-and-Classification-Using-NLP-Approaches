@@ -12,7 +12,7 @@ The project studies the following questions:
   job title?
 - Does a job-domain model outperform general-purpose sentence-embedding models?
 - Does representing a skill with all of its aliases improve retrieval?
-- Does contrastive fine-tuning improve the MiniLM baseline?
+- Does contrastive fine-tuning improve the selected models?
 - How well do the models distinguish relevant skills from irrelevant skills and
   core skills from contextual skills?
 
@@ -60,12 +60,6 @@ The processed training labels are:
 - `1`: contextual/optional skill;
 - `2`: core/essential skill.
 
-The 50,000 irrelevant training pairs are randomly sampled job-skill
-combinations that do not occur in the provided positive mapping. They are
-assumed negatives for the supervised logistic-regression baseline; they are not
-independently annotated negatives. The fine-tuning experiment uses only
-positive pairs (`label > 0`).
-
 `data/processed/test.csv` is a locally generated, validation-derived table
 with sampled negatives. It is **not** the official hidden Task B test set. The
 main ranking evaluation instead uses the raw development queries, complete
@@ -88,16 +82,14 @@ The data-processing workflow is documented in
 
 ### Models and experiments
 
-- [`baseline.ipynb`](baseline.ipynb) evaluates the
-  `all-MiniLM-L6-v2` zero-shot cosine baseline and logistic-regression
-  alternatives.
-- [`experiments/01_models_and_aliases.ipynb`](experiments/01_models_and_aliases.ipynb)
-  compares MiniLM, MPNet, and JobBERT, including different skill-alias
-  aggregation strategies.
-- [`experiments/02_finetune_minilm.ipynb`](experiments/02_finetune_minilm.ipynb)
-  fine-tunes MiniLM with contrastive learning on positive job-skill pairs.
-- [`experiments/03_error_analysis.ipynb`](experiments/03_error_analysis.ipynb)
-  compares models per job and prepares false positives for analysis.
+- [`experiments/04_five_model_comparison.ipynb`](experiments/04_five_model_comparison.ipynb)
+  evaluates five models with three skill-alias strategies.
+- [`experiments/05_locked_model_comparison.ipynb`](experiments/05_locked_model_comparison.ipynb)
+  locks the mean-alias representation and selects fine-tuning candidates.
+- [`experiments/06_finetune_selected_models.ipynb`](experiments/06_finetune_selected_models.ipynb)
+  fine-tunes JobBERT, E5, and MPNet.
+- [`experiments/07_final_comparison_and_error_analysis.ipynb`](experiments/07_final_comparison_and_error_analysis.ipynb)
+  compares all eight final systems and generates error-analysis outputs.
 
 Ranking metrics are implemented in
 [`ranking_metrics.py`](ranking_metrics.py). Saved experiment results are in
@@ -121,11 +113,11 @@ Rank the complete development skill corpus
 Compare rankings with graded qrels
 ```
 
-The baseline uses `all-MiniLM-L6-v2` embeddings and cosine similarity. Two
-logistic-regression variants use the same embeddings as pair features. The
-model comparison evaluates MiniLM, MPNet, and JobBERT. The fine-tuning
-experiment adapts MiniLM with `MultipleNegativesRankingLoss` using positive
-job-skill pairs.
+Notebook 04 evaluates MiniLM, MPNet, JobBERT, BGE, and E5 with first, mean,
+and maximum alias representations. Notebook 05 selects mean aliases and
+identifies JobBERT, E5, and MPNet for fine-tuning. Notebook 06 uses
+`MultipleNegativesRankingLoss` with positive job-skill pairs. Notebook 07
+performs the final comparison and error analysis.
 
 The fine-tuning experiment improves retrieval relevance, but it does not train
 an explicit core/contextual classifier: labels `1` and `2` are both treated as
@@ -157,16 +149,23 @@ processed CSV files.
 
 The current experiments include the following approaches:
 
-- zero-shot cosine similarity with MiniLM, MPNet, and JobBERT;
+- zero-shot cosine similarity with MiniLM, MPNet, JobBERT, BGE, and E5;
 - first, mean, and maximum aggregation of skill aliases;
-- logistic regression over embedding-based pair features;
-- contrastive fine-tuning of MiniLM with
+- contrastive fine-tuning of JobBERT, E5, and MPNet with
   `MultipleNegativesRankingLoss`.
 
-The best stored graded nDCG is currently **0.7381**, achieved by
-JobBERT with mean skill-alias embeddings. The fine-tuned MiniLM model reaches
-**0.6744** graded nDCG, improving over the original MiniLM zero-shot baseline
-at **0.6154**.
+Notebook 07 evaluates eight systems on all 304 development jobs. JobBERT
+zero-shot with mean skill-alias embeddings remains the best system by graded
+nDCG (**0.7381**). Fine-tuned JobBERT has the best final top-k precision:
+P@1 **0.6678**, P@5 **0.5882**, and P@10 **0.5507**. Fine-tuning also
+substantially improves E5 and MPNet over their zero-shot scores.
+
+The final aggregate results are in
+[`results/final_system_comparison.csv`](results/final_system_comparison.csv).
+The per-job analysis is in
+[`results/error_analysis_summary.csv`](results/error_analysis_summary.csv),
+[`results/error_analysis_per_job.csv`](results/error_analysis_per_job.csv),
+and [`results/error_analysis_hardest_jobs.csv`](results/error_analysis_hardest_jobs.csv).
 
 See [`results.md`](results.md) for the complete current results table and a
 short interpretation.
@@ -176,15 +175,16 @@ short interpretation.
 - Sampled negative pairs may contain valid but unrecorded job-skill relations.
 - The fine-tuned model learns relevance but does not explicitly classify core
   versus contextual skills.
-- Some experiments use only the first skill alias; alias aggregation is not
-  applied uniformly to every experiment.
-- The trained `models/minilm_mnrl` weights are not stored in the repository.
+- Fine-tuned model weights are local artifacts and are not stored in the
+  repository.
 - Pretrained model downloads require access to Hugging Face.
 - Dependency versions are not pinned in `requirements.txt`.
 - Results report means over development queries but do not include confidence
   intervals or significance tests.
-- The error-analysis CSV is prepared for annotation, but its error-type and
-  note fields are not yet completed.
+- The hardest-job exports support qualitative review, but no manual
+  annotation has yet been completed.
+- Development results should not be interpreted as official hidden-test
+  performance.
 
 ## Project report
 

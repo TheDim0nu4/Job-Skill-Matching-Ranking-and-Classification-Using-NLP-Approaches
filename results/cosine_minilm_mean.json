@@ -1,10 +1,17 @@
 {
-  "description": "Zero-shot cosine (all-MiniLM-L6-v2); навичка = усереднений embedding усіх аліасів.",
-  "ndcg_graded": 0.6214,
-  "ndcg_binary": 0.6645,
-  "map_binary": 0.1477,
-  "mrr_binary": 0.6397,
-  "p@1": 0.4803,
-  "p@5": 0.3836,
-  "p@10": 0.3658
+  "description": "Zero-shot cosine (all-MiniLM-L6-v2); mean skill aliases",
+  "model_short_name": "minilm",
+  "model_name": "all-MiniLM-L6-v2",
+  "skill_representation": "mean",
+  "query_prefix": "",
+  "skill_prefix": "",
+  "n_queries": 304,
+  "n_candidate_skills": 9052,
+  "ndcg_graded": 0.621283,
+  "ndcg_binary": 0.664406,
+  "map_binary": 0.147637,
+  "mrr_binary": 0.634803,
+  "p@1": 0.470395,
+  "p@5": 0.383553,
+  "p@10": 0.365461
 }

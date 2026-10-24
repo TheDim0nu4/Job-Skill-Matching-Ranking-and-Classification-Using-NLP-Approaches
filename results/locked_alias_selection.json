@@ -1,0 +1,7 @@
+{
+  "selected_alias_strategy": "mean",
+  "selection_metric": "mean_ndcg_graded",
+  "tie_breaker": "mean_map_binary",
+  "mean_ndcg_graded": 0.6525974,
+  "mean_map_binary": 0.194036
+}
