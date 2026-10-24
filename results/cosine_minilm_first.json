@@ -1,17 +1,10 @@
 {
-  "description": "Zero-shot cosine (all-MiniLM-L6-v2); first skill aliases",
-  "model_short_name": "minilm",
-  "model_name": "all-MiniLM-L6-v2",
-  "skill_representation": "first",
-  "query_prefix": "",
-  "skill_prefix": "",
-  "n_queries": 304,
-  "n_candidate_skills": 9052,
-  "ndcg_graded": 0.615385,
-  "ndcg_binary": 0.659858,
-  "map_binary": 0.143008,
-  "mrr_binary": 0.620369,
-  "p@1": 0.434211,
-  "p@5": 0.382895,
-  "p@10": 0.353947
+  "description": "Zero-shot cosine (all-MiniLM-L6-v2); each skill is represented by its first alias.",
+  "ndcg_graded": 0.6154,
+  "ndcg_binary": 0.6599,
+  "map_binary": 0.143,
+  "mrr_binary": 0.6206,
+  "p@1": 0.4342,
+  "p@5": 0.3829,
+  "p@10": 0.3539
 }
