@@ -204,3 +204,32 @@ claims.
   files and execution outputs.
 - The final numerical values were taken from the generated result files and
   checked against the implementation.
+
+
+
+# Use of LLMs and AI Agents — Dmytro Skrypchenko, data preparation
+
+This section documents how I used an LLM while preparing the Task B data and exploring negative sampling.
+
+## Tool
+
+- **Assistant:** ChatGPT (OpenAI), via the ChatGPT interface
+- **Mode of use:** interactive coding assistance, explanations, and code review
+- **Verification:** the project's data files and notebook outputs were used to guide data-preparation decisions.
+
+The assistant provided suggestions and explanations in response to code and questions I supplied. I remained responsible for deciding which suggestions to use and for running and checking the code locally.
+
+## General role of the LLM
+
+I used the LLM as a programming and methodology assistant. It helped me structure the training and validation dataframes, add synthetic negative job–skill pairs, understand the assumptions behind negative sampling, and prepare the data for subsequent experiments.
+
+## Log by stage
+
+| # | What I asked (summary) | What the LLM produced | What I did / verified |
+|---|---|---|---|
+| 1 | Asked for a simple way to generate 50,000 random negative job–skill pairs for the training data | A Python approach using `random`, sets of known positive pairs, and batched sampling | Reviewed the code and adapted it to the notebook's existing dataframe and column names |
+| 2 | Asked how to add generated negative pairs to the training dataframe | Code to convert the pairs into a dataframe, join job and skill names, assign the synthetic `irrelevant` label, and concatenate them with the existing data | Integrated the suggested dataframe operations into the data-preparation workflow |
+| 3 | Asked how to prepare a corresponding dataset from the `validation` files | Guidance for loading the validation queries, candidate skills, and qrels, then joining IDs to their text representations | Used the actual validation file structure and adjusted the parsing and column names to match the files |
+| 4 | Asked about an error while parsing `skill_aliases` with `json.loads()` | An explanation that the values were not necessarily valid JSON and a suggestion to use `ast.literal_eval()` for Python-literal list strings | Applied the alternative parsing method in the notebook |
+
+**Note:** The generated negative pairs are synthetic examples. An unlabeled job–skill pair is not necessarily truly irrelevant, so this assumption should be considered when interpreting experimental results.
