@@ -1,4 +1,4 @@
-# Use of LLMs and AI Agents — [Anatolii Vasylov], embeddings part
+# Use of LLMs and AI Agents — Anatolii Vasylov, embeddings part
 
 This appendix documents all use of large language models in my part of the project
 
@@ -49,7 +49,7 @@ which direction to take.
   (`results/*.json` are reproducible with the notebooks), not from the LLM.
 
 
-# Use of LLMs and AI Agents — [Valeriia Nikolaieva], methodology and documentation part
+# Use of LLMs and AI Agents — Valeriia Nikolaieva, methodology and documentation part
 
 This appendix documents how I used an LLM while analysing the TalentCLEF
 Task B project, defining the experimental methodology, interpreting the
@@ -145,3 +145,62 @@ numerical values.
   assigned grade `0` during evaluation.
 - I did not claim statistical significance because no significance tests were
   performed.
+
+
+# Use of LLMs and AI Agents — Danil Kozhan, final experiment pipeline
+
+This section documents use of an AI assistant while implementing, running,
+debugging, validating, and documenting the final experiment pipeline in
+Notebooks 04--07.
+
+## Tool
+
+- **Assistant:** AI assistant using Copilot SDK in VS Code
+- **Mode of use:** interactive coding, analysis, debugging, result
+  interpretation
+- **Verification:** source files, notebooks, generated result files, local
+  execution output, and the official Task B description were used as sources
+  of truth
+
+The assistant did not independently produce or invent the reported experiment
+metrics. I ran the notebooks locally, inspected their outputs, and made the
+final decisions about the implementation and interpretation.
+
+## General role of the LLM
+
+I used the assistant to help turn the exploratory work into a controlled final
+pipeline. It helped review the repository and task requirements, implement and
+refine Notebooks 04--07, diagnose execution errors, check metric and dataset
+consistency.
+
+The assistant's suggestions were checked against the implementation and actual
+outputs. The repository result files remained authoritative for numerical
+claims.
+
+## Log by stage
+
+| # | What I asked (summary) | What the LLM produced | What I did / verified |
+|---|---|---|---|
+| 1 | Implemented the five-model and three-alias comparison in Notebook 04 | Code for evaluating MiniLM, MPNet, JobBERT, BGE, and E5 with first, mean, and max alias representations; result aggregation and alias-strategy summaries | Ran all 15 configurations and verified the generated result files and summary metrics |
+| 2 | Implemented the locked comparison and model-selection stage in Notebook 05 | Selection logic using mean graded nDCG across models, with MAP as the tie-breaker; locked comparison and fine-tuning candidate export | Verified that mean aliases were selected and that JobBERT, E5, and MPNet were selected for fine-tuning |
+| 3 | Implemented fine-tuning of the selected models in Notebook 06 | A contrastive fine-tuning workflow using `MultipleNegativesRankingLoss`, positive pairs, fixed evaluation data, and reproducible configuration metadata | Ran fine-tuning locally for JobBERT, E5, and MPNet and verified the saved checkpoints and result files |
+| 4 | Implemented the final comparison and error analysis in Notebook 07 | Code combining five zero-shot and three fine-tuned systems, calculating aggregate and per-job metrics, AUC values, and hardest-job exports | Ran the notebook and verified 2,432 per-job rows, eight system summaries, and the generated error-analysis files |
+
+
+## Errors and verification
+
+- The first JobBERT fine-tuning route configuration used route names that
+  were not available in the model. The error was investigated and the working
+  `anchor`/`positive` mapping was verified by a successful local run.
+- Dataset counts and processed-row totals were checked against the current
+  repository files rather than copied from earlier documentation.
+
+
+## What the LLM did not do
+
+- It did not generate the measured retrieval metrics or replace the local
+  notebook runs.
+- It did not independently validate results without access to the repository
+  files and execution outputs.
+- The final numerical values were taken from the generated result files and
+  checked against the implementation.
