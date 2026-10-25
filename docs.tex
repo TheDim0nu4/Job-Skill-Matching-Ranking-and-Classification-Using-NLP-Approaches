@@ -1,0 +1,544 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[slovak,english]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage[backend=biber,style=authoryear,maxcitenames=2]{biblatex}
+
+\geometry{margin=2.5cm}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={Zhoda pracovných pozícií a zručností},
+  pdfauthor={Tím projektu}
+}
+\addbibresource{refs.bib}
+
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\model}[1]{\texttt{\detokenize{#1}}}
+
+\title{\textbf{Zhoda pracovných pozícií a zručností}\\
+\large Semantické vyhľadávanie a hodnotenie typov zručností v úlohe TalentCLEF 2026 Task B}
+\author{Tím projektu}
+\date{25. október 2026}
+
+\begin{document}
+\selectlanguage{slovak}
+\maketitle
+
+\begin{abstract}
+Táto práca sa zaoberá úlohou TalentCLEF 2026 Task B, ktorej cieľom je
+vyhľadať zručnosti relevantné pre názov pracovnej pozície a zoradiť ich podľa
+relevantnosti. Zároveň úloha rozlišuje medzi základnými zručnosťami
+(\emph{core}) a kontextovými zručnosťami (\emph{contextual}). Navrhli sme
+reprodukovateľný experimentálny pipeline založený na sentence-embedding
+modeloch, kosínovej podobnosti, reprezentácii ESCO zručností pomocou aliasov
+a kontrastívnom fine-tuningu vybraných modelov. Porovnali sme päť
+predtrénovaných modelov a tri stratégie spracovania aliasov. Najlepší výsledok
+podľa graded nDCG dosiahol model \model{TechWolf/JobBERT-v2} bez fine-tuningu,
+pri priemerovaní embeddingov všetkých aliasov zručnosti
+(\(nDCG=0{,}7381\)). Fine-tuning zlepšil všeobecné modely E5 a MPNet, zatiaľ
+čo pri JobBERT zlepšil najmä presnosť v horných pozíciách. Podľa dostupných
+qrels modely lepšie oddeľujú posudzované relevantné položky od
+nepozitívnych alebo nehodnotených kandidátov než zoradia základné a
+kontextové zručnosti.
+\end{abstract}
+
+\noindent\textbf{Kľúčové slová:} spracovanie prirodzeného jazyka, sentence
+embeddings, ESCO, vyhľadávanie zručností, ranking, TalentCLEF, JobBERT
+
+\section{Problém, motivácia a ciele}
+
+Digitálne pracovné portály, nástroje na odporúčanie pracovných ponúk a systémy
+na analýzu trhu práce potrebujú prepájať neštruktúrovaný text pracovných
+ponúk s jednotným opisom profesií a zručností. Rovnaká zručnosť môže byť v
+texte vyjadrená rôznymi synonymami a názov pracovnej pozície často neposkytuje
+dostatočne podrobný zoznam požiadaviek. Ručné mapovanie pozícií na zručnosti je
+časovo náročné, ťažko škálovateľné a môže byť nekonzistentné medzi anotátormi
+alebo organizáciami.
+
+TalentCLEF 2026 Task B formalizuje tento problém ako vyhľadávanie zručností
+pre názov pracovnej pozície a klasifikáciu typu nájdenej zručnosti
+\parencite{talentclef2026overviewb}. V kontexte úlohy je základná zručnosť
+potrebná na výkon práce bez ohľadu na konkrétneho zamestnávateľa alebo
+pracovné prostredie. Kontextová zručnosť závisí viac od organizácie, odvetvia
+alebo projektu a má preto voliteľnejší charakter.
+
+Motiváciou projektu je vytvoriť systém, ktorý:
+\begin{enumerate}[label=\arabic*.]
+  \item automaticky vyhľadá zručnosti relevantné pre názov pozície;
+  \item využije normalizovaný slovník ESCO namiesto voľného generovania názvov;
+  \item zoradí zručnosti tak, aby sa relevantné položky nachádzali na začiatku;
+  \item vyhodnotí rozdiel medzi základnou a kontextovou relevanciou
+  prostredníctvom graded rankingu;
+  \item bude reprodukovateľný a vyhodnotený na oficiálnom development formáte.
+\end{enumerate}
+
+Projekt skúma tieto výskumné otázky:
+\begin{description}
+  \item[VO1:] Ako dobre dokážu predtrénované sentence-embedding modely
+  vyhľadávať ESCO zručnosti pre názov pozície?
+  \item[VO2:] Zlepšuje doménová špecializácia modelu výsledky oproti
+  všeobecným embedding modelom?
+  \item[VO3:] Pomáha pri reprezentácii zručnosti použiť všetky jej aliasy?
+  \item[VO4:] Zlepšuje kontrastívny fine-tuning vybraných modelov retrieval?
+  \item[VO5:] Sú modely úspešnejšie pri rozlíšení relevantnej a irelevantnej
+  zručnosti než pri zoradení základných a kontextových zručností?
+\end{description}
+
+\section{Súvisiaca práca}
+
+\subsection{TalentCLEF a ESCO}
+
+TalentCLEF rozširuje klasické úlohy informačného vyhľadávania o doménu
+ľudského kapitálu a pracovných zručností. Prehľad súťaže opisuje spoločné
+úlohy, dáta a hodnotenie a zdôrazňuje potrebu normalizovaných znalostí o
+pracovných pozíciách a zručnostiach \parencite{gasco2026overview}.
+Špecifický prehľad Task B definuje párovanie názvov pozícií so zručnosťami a
+graded relevanciu, v ktorej sa rozlišujú základné a kontextové zručnosti
+\parencite{talentclef2026overviewb}.
+
+ESCO predstavuje európsku viacjazyčnú klasifikáciu zručností, kompetencií,
+kvalifikácií a povolaní. V tomto projekte sa využívajú ESCO identifikátory a
+textové termíny zručností. Identifikátor umožňuje, aby sa synonymné alebo
+alternatívne pomenovania spájali s jednou normalizovanou položkou.
+
+\subsection{Prístupy účastníkov}
+
+Predchádzajúce riešenia v rámci TalentCLEF kombinujú lexikálne, neurónové a
+hybridné retrieval metódy. Práca MARSAD opisuje ESCO-aware hybridné
+vyhľadávanie, v ktorom sa kombinuje informácia zo štruktúry ESCO a textová
+podobnosť \parencite{IbrahimMARSADAT}. Tento smer je relevantný pre náš projekt,
+pretože ukazuje, že samotná povrchová podobnosť nemusí zachytiť vzťahy medzi
+pozíciami a zručnosťami.
+
+Tím ui-nlp používa bi-encoder retrieval a ensemble stratégie pre úlohy
+job-person a job-skill matching \parencite{LuthfiyyahuinlpAT}. Bi-encoder
+prístup je blízky nášmu pipeline: dotazy a kandidátne dokumenty sa kódujú
+samostatne a následne sa porovnávajú vo vektorovom priestore. Výhodou je
+škálovateľnosť na tisíce kandidátnych zručností; nevýhodou je, že samostatné
+embeddingy nemusia zachytiť všetky jemné interakcie medzi dvojicou textov.
+
+Naše riešenie preto používa sentence embeddings ako transparentný a
+reprodukovateľný baseline. Rozširuje ho porovnaním doménového modelu
+JobBERT, všeobecných modelov a kontrastívneho fine-tuningu. Nejde o
+generovanie nových zručností: všetky výsledky sa vyberajú z poskytnutého
+ESCO-normalizovaného corpus.
+
+\section{Dáta}
+
+\subsection{Pôvod a formát}
+
+Použité dáta pochádzajú z adresára \code{data/raw/TaskB}. Tréningová časť
+obsahuje vzťahy medzi povolaniami a zručnosťami odvodené z ESCO a dve mapovania
+identifikátorov na textové termíny. Development časť obsahuje dotazy, úplný
+slovník kandidátnych zručností a súbor qrels s anotovanou relevanciou.
+
+V tejto práci používame nasledujúce pojmy:
+\begin{description}
+  \item[Povolanie (occupation):] identifikované ESCO URI alebo tréningovým
+  \code{job_id}; jeho textové pomenovanie je názov pozície.
+  \item[Zručnosť (skill):] ESCO položka identifikovaná URI alebo \code{skill_id}.
+  \item[Alias:] alternatívny textový názov tej istej ESCO zručnosti.
+  \item[Query:] názov pracovnej pozície, pre ktorú sa vyhľadávajú zručnosti.
+  \item[Corpus item:] kandidátna ESCO zručnosť, ktorú možno zaradiť do
+  výsledného zoznamu.
+  \item[Qrel:] judgment vzťahu query--corpus item. Obsahuje query ID,
+  corpus ID a graded relevanciu.
+\end{description}
+
+\begin{table}[ht]
+\centering
+\caption{Počty záznamov v použitých dátových súboroch.}
+\label{tab:data}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}XrX}
+\toprule
+\textbf{Súbor} & \textbf{Počet} & \textbf{Význam} \\
+\midrule
+\code{training/job2skill.tsv} & 114\,699 & tréningové väzby povolanie--zručnosť \\
+\code{training/jobid2terms.json} & 3\,039 & top-level identifikátory povolaní \\
+\code{training/skillid2terms.json} & 13\,939 & top-level identifikátory zručností \\
+\code{validation/queries} & 304 & development query názvov pozícií \\
+\code{validation/corpus_elements} & 9\,052 & kandidátne ESCO zručnosti \\
+\code{validation/qrels.tsv} & 56\,418 & anotované query--skill judgments \\
+\code{processed/train.csv} & 164\,699 & páry po pridaní vzorkovaných negatívov \\
+\code{processed/test.csv} & 96\,418 & lokálny validation-derived súbor \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Počty v tabuľke predstavujú fyzické dátové záznamy. JSON súbory obsahujú
+3\,039, respektíve 13\,939 top-level identifikátorov; po spojení s
+tréningovým mappingom môže byť počet aktívne prepojených identifikátorov
+menší, čo však nie je alternatívna definícia počtov uvedených v tabuľke.
+Pri súboroch TSV \code{job2skill.tsv} a \code{qrels.tsv} nejde o riadok s
+hlavičkou. Pri spracovaní sa k pozitívnym riadkom pridajú textové názvy a
+následne sa do CSV doplnia syntetické negatívy. Preto má
+\code{processed/train.csv} \(114\,699+50\,000=164\,699\) dátových riadkov
+a \code{processed/test.csv} \(56\,418+40\,000=96\,418\) dátových riadkov;
+CSV hlavička sa do týchto počtov nezapočítava. Qrels explicitne obsahuje
+grade \(2\) pre core zručnosti a grade \(1\) pre contextual zručnosti.
+Kandidátne skills, ktoré v qrels chýbajú, dostávajú pri evaluácii grade \(0\).
+V qrels je 16\,161 záznamov grade \(2\) a 40\,257 záznamov grade \(1\).
+
+\subsection{Licencia a redistribúcia}
+
+V pracovnom priestore nie je pri dátových súboroch priložený samostatný
+licenčný súbor, ktorý by udeľoval všeobecné právo na redistribúciu. Dáta preto
+neinterpretujeme ako voľne redistribuovateľný dataset. Použitie ESCO údajov a
+materiálov TalentCLEF musí rešpektovať podmienky organizátorov, podmienky
+zdroja ESCO a prípadné podmienky konkrétneho kurzu alebo súťaže. Táto správa
+opisuje lokálny experiment; pred zverejnením dát alebo modelových artefaktov
+je potrebné overiť aktuálne licenčné a redistribučné pravidlá.
+
+\section{Predspracovanie dát}
+
+Implementácia predspracovania je v notebooku
+\code{data_processing.ipynb}. Na začiatku sa načíta \code{job2skill.tsv},
+mapovanie \code{jobid2terms.json} a mapovanie
+\code{skillid2terms.json}. Z každého zoznamu termínov sa pre lokálny
+spracovaný súbor vyberie prvý termín ako \code{job_name}, respektíve
+\code{skill_name}. Následne sa obe mapovania spoja s tabuľkou väzieb podľa
+identifikátorov.
+
+Pôvodné označenia tréningových väzieb sú:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Pôvodné označenie} & \textbf{Číselný label} & \textbf{Interpretácia} \\
+\midrule
+\code{essential} & 2 & základná zručnosť \\
+\code{optional} & 1 & kontextová/voliteľná zručnosť \\
+\code{irrelevant} & 0 & irelevantná dvojica \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Vzorkovanie negatívnych párov}
+
+Tréningové mapovanie obsahuje iba známe pozitívne väzby, preto notebook
+vytvára 50\,000 negatívnych párov. Náhodne sa vyberajú povolania a zručnosti
+zo zoznamov identifikátorov. Dvojica sa prijme iba vtedy, ak sa nenachádza v
+množine známych pozitívnych dvojíc. Proces opakuje bloky 1\,000 náhodných
+výberov, až kým nevznikne 50\,000 unikátnych kandidátov. Seed je nastavený
+na hodnotu \(42\) v súbore \code{config.py}. Páry sa následne spoja s textami
+a dostanú label \(0\).
+
+Takto vytvorené negatívy sú \emph{assumed negatives}: ide o dvojice, ktoré
+nie sú v poskytnutom mappingu, nie o manuálne overené negatívne anotácie.
+Neprítomnosť väzby preto nemusí znamenať, že zručnosť je v realite pre dané
+povolanie nesprávna. Toto obmedzenie je dôležité pri interpretácii modelov,
+ktoré by tieto negatívy používali ako učebné príklady.
+
+Pre validation-derived \code{test.csv} sa rovnakým postupom pridá 40\,000
+náhodných negatívnych párov k oficiálnym qrels z development časti. Tento
+lokálny súbor nie je skrytý oficiálny test súťaže a nepoužíva sa ako hlavný
+ranking benchmark. Hlavné experimenty pracujú priamo s 304 development
+queries, úplným corpusom 9\,052 skills a qrels.
+
+\section{Finálna metodika a experimentálny pipeline}
+
+\subsection{Spoločný ranking pipeline}
+
+Finálny experimentálny pipeline je implementovaný v tomto poradí:
+\begin{enumerate}
+  \item \code{data_processing.ipynb}: príprava tréningových a
+  validation-derived tabuliek;
+  \item \code{04_five_model_comparison.ipynb}: porovnanie piatich modelov
+  a troch aliasových stratégií;
+  \item \code{05_locked_model_comparison.ipynb}: uzamknutie mean
+  reprezentácie a výber modelov na fine-tuning;
+  \item \code{06_finetune_selected_models.ipynb}: fine-tuning JobBERT,
+  E5 a MPNet;
+  \item \code{07_final_comparison_and_error_analysis.ipynb}: finálne
+  porovnanie a error analysis.
+\end{enumerate}
+
+Spoločný ranking postup v notebookoch 04--07 pozostáva z týchto krokov:
+\begin{enumerate}
+  \item načítanie development queries, corpus elements a qrels;
+  \item zakódovanie názvov pozícií a textov skill aliasov sentence-embedding
+  modelom;
+  \item vytvorenie reprezentácie každej skill;
+  \item výpočet kosínovej podobnosti medzi query embeddingom a každou
+  kandidátnou skill;
+  \item zoradenie všetkých 9\,052 kandidátov pre každú z 304 pozícií;
+  \item porovnanie výsledného poradia s qrels.
+\end{enumerate}
+
+Embeddings sa normalizujú, takže kosínová podobnosť je v implementácii
+ekvivalentná skalárnemu súčinu. Modely neprodukujú nové názvy skills; skóre
+určuje iba poradie položiek v poskytnutom gazetteer.
+
+\subsection{Porovnávané modely}
+
+Notebook \code{04_five_model_comparison.ipynb} porovnáva:
+\begin{itemize}
+  \item \model{all-MiniLM-L6-v2};
+  \item \model{all-mpnet-base-v2};
+  \item \model{TechWolf/JobBERT-v2};
+  \item \model{BAAI/bge-base-en-v1.5};
+  \item \model{intfloat/e5-base-v2}.
+\end{itemize}
+
+Pre každú zručnosť sa testujú tri reprezentácie:
+\begin{description}
+  \item[first:] použije sa iba prvý alias;
+  \item[mean:] embeddingy všetkých aliasov sa spriemerujú a výsledný vektor
+  sa znovu normalizuje;
+  \item[max:] skóre zručnosti je maximum kosínovej podobnosti cez všetky
+  jej aliasy.
+\end{description}
+
+Notebook 05 následne \emph{uzamkne} globálnu stratégiu aliasov. Kritériom je
+priemerný graded nDCG cez všetkých päť modelov; pri zhode sa použije MAP.
+Výsledkom je stratégia \code{mean}: \(0{,}6526\) oproti \(0{,}6502\) pre
+\code{first} a \(0{,}6426\) pre \code{max}. Na základe poradia modelov pri
+uzamknutej reprezentácii sa na fine-tuning vyberú JobBERT, E5 a MPNet.
+
+\paragraph{Rozsah implementovanej úlohy.}
+Projekt implementuje retrieval s graded relevanciou, nie samostatný
+trojtriedny klasifikátor. Grade \(2\) označuje core/essential skill, grade
+\(1\) contextual/optional skill a kandidát bez záznamu v qrels dostáva pri
+evaluácii grade \(0\). Fine-tuning používa labels \(1\) a \(2\) ako pozitívne
+páry. Rozlíšenie core a contextual sa preto vyhodnocuje nepriamo poradím
+prostredníctvom graded nDCG. Samostatná classification head, ktorá by
+predikovala core, contextual, complementary alebo transversal triedu,
+implementovaná nie je. Širšie termíny complementary a transversal sa v tomto
+projekte nepoužívajú ako samostatné labely.
+
+\subsection{Reprodukovateľnosť baseline}
+
+Projekt poskytuje zdokumentovaný a reprodukovateľný experimentálny postup.
+Presná numerická reprodukcia však nemusí byť za každých okolností identická
+v dôsledku verzií softvéru, použitého hardvéru, konfigurácie CUDA,
+nondeterministického tréningu a opätovného sťahovania modelov. Lokálne
+fine-tuned checkpointy nie sú súčasťou repozitára. Experimenty používajú
+\code{RANDOM_SEED = 42}. Závislosti sú uvedené v
+\code{requirements.txt}: \code{pandas}, \code{numpy}, \code{scikit-learn},
+\code{sentence-transformers}, \code{jupyter}, \code{datasets},
+\code{accelerate} a \code{matplotlib}; ich verzie však nie sú úplne
+pripnuté. Predtrénované modely sa pri prvom spustení načítajú z Hugging Face.
+Notebooky je potrebné spúšťať z koreňa repozitára, aby relatívne cesty k
+dátam fungovali.
+
+\section{Metriky a experimentálne nastavenie}
+
+\subsection{Metriky}
+
+Implementácia metrík je v súbore \code{ranking_metrics.py}. Pre každý query
+sa najprv vytvorí stabilné poradie podľa klesajúceho skóre. Stabilné triedenie
+zabezpečuje deterministické správanie pri zhodných skóre.
+
+\paragraph{Graded nDCG.}
+Hlavná metrika \emph{graded nDCG} používa zisky \(2\) pre základné a \(1\)
+pre kontextové zručnosti. Diskontovanie podľa pozície znamená, že relevantná
+zručnosť na začiatku zoznamu je cennejšia než rovnaká zručnosť na jeho konci:
+\[
+DCG = \sum_{i=1}^{n}\frac{rel_i}{\log_2(i+1)},\qquad
+nDCG = \frac{DCG}{IDCG}.
+\]
+Táto metrika je vhodná, pretože zohľadňuje retrieval aj rozdiel medzi
+core a contextual.
+
+\paragraph{Binary nDCG a MAP.}
+Pri binárnych metrikách sa labels \(1\) a \(2\) zlúčia do hodnoty relevantné.
+MAP meria, ako kompaktne sú všetky relevantné položky umiestnené v poradí,
+nie iba prvá nájdená položka. Binary nDCG a MAP preto hodnotia schopnosť
+odfiltrovať irelevantné zručnosti.
+
+\paragraph{MRR a Precision@K.}
+MRR používa recipročnú pozíciu prvej relevantnej zručnosti. Precision@1,
+Precision@5 a Precision@10 merajú priemerný podiel relevantných zručností
+v horných \(K\) pozíciách. Sú praktické pre používateľské rozhrania, ktoré
+zobrazujú krátky zoznam odporúčaní.
+
+Žiadna z týchto metrík sama osebe nie je klasická presnosť
+trojtriedneho klasifikátora. V tomto projekte model produkuje rankingové
+skóre a graded nDCG zachytáva rozdiel core--contextual nepriamo cez poradie.
+
+\subsection{Experimentálny protokol}
+
+Po výbere mean alias reprezentácie sa v notebooku
+\code{06_finetune_selected_models.ipynb} fine-tunujú tri vybrané modely.
+Použijú sa iba pozitívne páry s \code{label > 0}; labels \(1\) a \(2\) sú
+teda počas fine-tuningu považované za rovnocenné pozitívne páry. Nastavenia
+experimentu sú:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Loss & \code{MultipleNegativesRankingLoss} \\
+Počet epoch & 2 \\
+Batch size & 128 \\
+Learning rate & \(2\cdot10^{-5}\) \\
+Seed & 42 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Pri tomto loss je správna skill partnerom názvu pozície a ostatné skills z
+batchu slúžia ako in-batch negatives. Sampler
+\code{NO_DUPLICATES} odstraňuje presné opakovanie textov v batchi, ale
+neodstraňuje sémanticky podobné false negatives. Keďže jedna skill môže byť
+relevantná pre viac súvisiacich pozícií, ide o dôležité obmedzenie.
+Tréningový dataset používa stĺpce \code{anchor} a \code{positive}; tieto
+stĺpce sú v konfigurácii Sentence Transformers odovzdané priamo do
+zodpovedajúcich rout modelu JobBERT. Použité routy sú teda
+\code{anchor} a \code{positive}, pričom mapovanie je
+\texttt{router\_mapping=\{"anchor": "anchor", "positive": "positive"\}}.
+Nepoužívajú sa routy \code{query} a \code{document}.
+
+Rozdelenie internej validácie sa robí na úrovni názvu pozície, nie náhodným
+rozdelením jednotlivých riadkov. Tak sa znižuje riziko, že sa rovnaká
+pozícia objaví v tréningu aj internej validácii. Finálna evaluácia sa však
+vykonáva jednotným protokolom na celom development sete v notebooku
+\code{07_final_comparison_and_error_analysis.ipynb}.
+
+Notebook 07 porovnáva osem systémov: päť zero-shot systémov a tri
+fine-tunované systémy. Okrem agregovaných metrík vytvára výsledky po
+jednotlivých pozíciách pre všetkých 304 queries, súbor s najťažšími
+pozíciami a AUC analýzu rozlíšenia relevantných položiek a core položiek.
+
+\section{Výsledky}
+
+\begin{table}[ht]
+\centering
+\caption{Hlavné výsledky na development sete; vyššia hodnota je lepšia.}
+\label{tab:results}
+\begin{tabular}{llrrrrrr}
+\toprule
+\textbf{Fáza} & \textbf{Model} & \textbf{nDCG} & \textbf{MAP} &
+\textbf{MRR} & \textbf{P@1} & \textbf{P@5} & \textbf{P@10}\\
+\midrule
+Zero-shot & JobBERT & 0.7381 & 0.3416 & 0.7886 & 0.6480 & 0.5625 & 0.5178\\
+Fine-tuned & JobBERT & 0.7319 & 0.3258 & \textbf{0.7997} & \textbf{0.6678} & \textbf{0.5882} & \textbf{0.5507}\\
+Fine-tuned & E5 & 0.7040 & 0.2694 & 0.7243 & 0.5658 & 0.5138 & 0.5039\\
+Fine-tuned & MPNet & 0.6981 & 0.2602 & 0.7071 & 0.5625 & 0.5033 & 0.4766\\
+Zero-shot & E5 & 0.6401 & 0.1642 & 0.6958 & 0.5428 & 0.4507 & 0.4168\\
+Zero-shot & MPNet & 0.6327 & 0.1612 & 0.6302 & 0.4539 & 0.3980 & 0.3711\\
+Zero-shot & BGE & 0.6309 & 0.1555 & 0.6340 & 0.4441 & 0.4138 & 0.3737\\
+Zero-shot & MiniLM & 0.6213 & 0.1476 & 0.6348 & 0.4704 & 0.3836 & 0.3655\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ako autoritatívny zdroj agregovaných výsledkov používame súbor
+\code{results/final_system_comparison.csv}, ktorý vznikol vo finálnom
+porovnávacom notebooku. V tabuľke je preto pre zero-shot JobBERT uvedené
+\(MRR=0{,}7886\). Samostatný export error analysis dopočítava metriky z
+per-job tabuliek a uvádza približne \(0{,}7903\); tento rozdiel je dôsledkom
+odlišného zdroja agregácie, nie zmeny modelu. Fine-tuned JobBERT má v oboch
+výstupoch \(MRR=0{,}7997\). Pre porovnateľnosť sú všetky čísla v tabuľke
+prebraté z jedného autoritatívneho CSV.
+
+JobBERT bez fine-tuningu dosahuje najlepší graded nDCG a MAP. Tento výsledok
+je konzistentný s možným prínosom doménovej špecializácie v tejto úlohe,
+nepredstavuje však test štatistickej významnosti. Fine-tuning E5 zvyšuje
+nDCG z \(0{,}6401\)
+na \(0{,}7040\) a MPNet z \(0{,}6327\) na \(0{,}6981\). Pri JobBERT sa
+celkový graded nDCG mierne zníži, ale zlepší sa MRR a všetky sledované
+Precision@K. To znamená, že fine-tuned JobBERT častejšie umiestni relevantnú
+zručnosť úplne na začiatok, hoci celé graded poradie je podľa nDCG o niečo
+slabšie. Podľa tejto konfigurácie teda fine-tuning zlepšil reportované
+retrieval metriky pre E5 a MPNet a top-k metriky pre JobBERT, zatiaľ čo
+zero-shot JobBERT zostal najsilnejší podľa graded nDCG. Štatistické testy
+významnosti neboli vykonané.
+
+Notebook 07 uvádza aj AUC výsledky. Zero-shot JobBERT dosahuje približne
+\(0{,}9596\) pre rozlíšenie relevantných a irelevantných zručností a
+\(0{,}9585\) pre preferenciu core voči contextual. Fine-tuned JobBERT
+dosahuje \(0{,}9420\), respektíve \(0{,}9483\). Tieto výsledky potvrdzujú
+hlavný záver pre dostupné qrels: modely dobre oddeľujú posudzované relevantné
+skills od nepozitívnych alebo nehodnotených kandidátov. Tieto hodnoty však
+nie sú dôkazom, že každý kandidát bez qrels je skutočne irelevantný, a AUC
+nie je presnosť trojtriedneho klasifikátora. Rozdiel medzi core a contextual
+je jemnejší a v tomto projekte sa nepredikuje samostatnou classification head.
+
+\section{Možné rozšírenia}
+
+Nasledujúce návrhy nie sú súčasťou implementovaného pipeline:
+\begin{itemize}
+  \item graded alebo pairwise ranking loss, ktorý by počas tréningu
+  rozlišoval grade \(2\) od grade \(1\);
+  \item filtrovanie false negatives pri in-batch negatívoch;
+  \item explicitný klasifikátor pre core a contextual labels;
+  \item kvalitnejšie alebo manuálne overené negatívne vzorky;
+  \item intervaly spoľahlivosti a párové testy štatistickej významnosti.
+\end{itemize}
+
+\section{Použitie AI a reprodukovateľnosť}
+
+\subsection{Použitie LLM a AI agentov}
+
+Počas projektu boli LLM použité ako podporný nástroj pri návrhu pipeline,
+písaní prvých verzií kódu, interpretácii chýb a kontrole dokumentácie.
+Experimenty a výsledky však vznikli lokálnym spustením notebookov členmi
+tímu. LLM nebola zdrojom nameraných metrík. Vývojový záznam v súbore
+\code{llm.md} uvádza použité nástroje, etapy práce, overovanie výstupov aj
+zistené chyby. Každý návrh vygenerovaný LLM bol preto potrebné skontrolovať
+voči kódu, dátam a skutočnému výstupu experimentu.
+
+\subsection{Postup reprodukcie}
+
+Reprodukciu možno vykonať nasledovne:
+\begin{enumerate}
+  \item naklonovať repozitár a spustiť terminál v jeho koreňovom adresári;
+  \item vytvoriť kompatibilné Python prostredie;
+  \item nainštalovať závislosti príkazom
+  \code{pip install -r requirements.txt};
+  \item skontrolovať, že \code{config.py} obsahuje
+  \code{RANDOM_SEED = 42};
+  \item spustiť \code{data_processing.ipynb}, ktorý vytvorí
+  \code{data/processed/train.csv} a \code{data/processed/test.csv};
+  \item spustiť \code{04_five_model_comparison.ipynb}, ktorý vytvorí
+  porovnanie 15 konfigurácií;
+  \item spustiť \code{05_locked_model_comparison.ipynb}, ktorý vyberie
+  globálnu reprezentáciu aliasov a kandidátov na fine-tuning;
+  \item spustiť \code{06_finetune_selected_models.ipynb}; notebook stiahne
+  základné modely a uloží lokálne fine-tuned váhy;
+  \item spustiť \code{07_final_comparison_and_error_analysis.ipynb}, ktorý
+  vytvorí finálne tabuľky, per-job analýzu a export najťažších pozícií.
+\end{enumerate}
+
+Notebooky 04--07 tvoria finálnu metodiku tejto práce. Staršie notebooky
+01--03 zostávajú v repozitári ako vývojová história, ale nie sú súčasťou
+definície finálneho experimentálneho protokolu. Výsledky sa ukladajú do
+adresára \code{results/}; kontrolnými výstupmi sú najmä
+\code{final_system_comparison.csv}, \code{error_analysis_summary.csv} a
+\code{error_analysis_per_job.csv}.
+
+\section{Záver}
+
+Navrhli a experimentálne sme overili zdokumentovaný experimentálny postup pre
+vyhľadávanie ESCO zručností podľa názvu pracovnej pozície. Pipeline porovnáva
+päť sentence-embedding modelov, tri stratégie reprezentácie aliasov a
+kontrastívny fine-tuning troch vybraných modelov. Hlavným výsledkom je, že
+doménový JobBERT bez fine-tuningu dosahuje najlepší celkový graded ranking
+(\(nDCG=0{,}7381\)), zatiaľ čo fine-tuned JobBERT poskytuje najlepšie
+top-k výsledky.
+
+Fine-tuning všeobecných modelov E5 a MPNet prináša zlepšenie v použitej
+konfigurácii, zatiaľ čo pri JobBERT zvyšuje najmä top-k metriky. Súčasne
+výsledky ukazujú, že retrieval a klasifikácia typu zručnosti nie sú totožné
+problémy. Systém pracuje s graded rankingom a neobsahuje samostatný
+klasifikátor pre core a contextual labels.
+
+\printbibliography[heading=bibintoc,title={Literatúra}]
+
+\end{document}
