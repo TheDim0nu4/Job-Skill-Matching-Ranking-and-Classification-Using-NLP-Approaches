@@ -17,7 +17,7 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{csquotes}
-\usepackage[backend=biber,style=authoryear,maxcitenames=2]{biblatex}
+\usepackage[backend=biber,style=ieee,maxcitenames=2]{biblatex}
 
 \geometry{margin=2.5cm}
 \hypersetup{
@@ -35,7 +35,7 @@
 
 \title{\textbf{Zhoda pracovných pozícií a zručností}\\
 \large Semantické vyhľadávanie a hodnotenie typov zručností v úlohe TalentCLEF 2026 Task B}
-\author{Danil Kozhan, Valeriia Nikolaeva, Anatolii Vasylov, Dmytro Skrypchenko}
+\author{Tím projektu}
 \date{25. október 2026}
 
 \begin{document}
@@ -323,7 +323,7 @@ predikovala core, contextual, complementary alebo transversal triedu,
 implementovaná nie je. Širšie termíny complementary a transversal sa v tomto
 projekte nepoužívajú ako samostatné labely.
 
-\subsection{Reprodukovateľnosť baseline}
+\subsection{Reprodukovateľnosť experimentálneho pipeline}
 
 Projekt poskytuje zdokumentovaný a reprodukovateľný experimentálny postup.
 Presná numerická reprodukcia však nemusí byť za každých okolností identická
@@ -399,10 +399,7 @@ neodstraňuje sémanticky podobné false negatives. Keďže jedna skill môže b
 relevantná pre viac súvisiacich pozícií, ide o dôležité obmedzenie.
 Tréningový dataset používa stĺpce \code{anchor} a \code{positive}; tieto
 stĺpce sú v konfigurácii Sentence Transformers odovzdané priamo do
-zodpovedajúcich rout modelu JobBERT. Použité routy sú teda
-\code{anchor} a \code{positive}, pričom mapovanie je
-\texttt{router\_mapping=\{"anchor": "anchor", "positive": "positive"\}}.
-Nepoužívajú sa routy \code{query} a \code{document}.
+zodpovedajúcich rout modelu JobBERT. 
 
 Rozdelenie internej validácie sa robí na úrovni názvu pozície, nie náhodným
 rozdelením jednotlivých riadkov. Tak sa znižuje riziko, že sa rovnaká
@@ -463,7 +460,7 @@ významnosti neboli vykonané.
 Notebook 07 uvádza aj AUC výsledky. Zero-shot JobBERT dosahuje približne
 \(0{,}9596\) pre rozlíšenie relevantných a irelevantných zručností a
 \(0{,}9585\) pre preferenciu core voči contextual. Fine-tuned JobBERT
-dosahuje \(0{,}9420\), respektíve \(0{,}9483\). Tieto výsledky potvrdzujú
+dosahuje \(0{,}9420\), respektíve \(0{,}9483\). Tieto výsledky podporujú
 hlavný záver pre dostupné qrels: modely dobre oddeľujú posudzované relevantné
 skills od nepozitívnych alebo nehodnotených kandidátov. Tieto hodnoty však
 nie sú dôkazom, že každý kandidát bez qrels je skutočne irelevantný, a AUC
@@ -498,7 +495,7 @@ voči kódu, dátam a skutočnému výstupu experimentu.
 
 Reprodukciu možno vykonať nasledovne:
 \begin{enumerate}
-  \item naklonovať \href{https://github.com/TheDim0nu4/Job-Skill-Matching-Ranking-and-Classification-Using-NLP-Approaches}{repozitár} a spustiť terminál v jeho koreňovom adresári;
+  \item naklonovať \href{https://github.com/TheDim0nu4/Job-Skill-Matching-Ranking-and-Classification-Using-NLP-Approaches}{\underline{repozitár}} a spustiť terminál v jeho koreňovom adresári;
   \item vytvoriť kompatibilné Python prostredie;
   \item nainštalovať závislosti príkazom
   \code{pip install -r requirements.txt};
